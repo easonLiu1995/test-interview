@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+@layer components {
+  .input-number-style {
+    @apply w-12 h-12 rounded border-blue-400 border font-light outline-0 inline-flex items-center justify-center;
+  }
+  .input-number-button {
+    @apply text-3xl text-blue-400;
+    font-weight: lighter;
+  }
+}
