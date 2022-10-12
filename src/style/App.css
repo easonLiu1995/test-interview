@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  font-family: 'Noto sans TC';
+}
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   appearance: none;

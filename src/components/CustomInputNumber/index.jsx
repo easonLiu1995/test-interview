@@ -1,14 +1,14 @@
-import React, { useEffect, useId, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import isFunction from 'lodash/isFunction'
 import PropTypes from 'prop-types'
 import { btnStyle, inputStyle } from './style'
 
 const CustomInputNumber = ({
-  min = 0,
+  min,
   max,
-  step = 1,
+  step,
   name,
-  value = 0,
+  value,
   onChange,
   onBlur,
   disabled
@@ -16,16 +16,15 @@ const CustomInputNumber = ({
   const inputRef = useRef(null)
   const intervalRef = useRef(null)
   const [inputValue, setInputValue] = useState(value)
-  const id = useId()
 
   useEffect(() => {
     return () => stopInput()
   }, [])
 
   useEffect(() => {
-    if (!inputRef.current) return
-    console.log('component name', inputRef.current.name)
-    console.log('component value', inputRef.current.value)
+    if (isFunction(onChange) && inputValue !== value) {
+      onChange({ inputValue })
+    }
   }, [inputValue])
 
   const handleInputChange = (e) => {
@@ -33,20 +32,19 @@ const CustomInputNumber = ({
     if (newValue > max) newValue = max
     if (newValue < min) newValue = min
     setInputValue(newValue)
-    if (isFunction(onChange)) onChange(e)
   }
 
-  const handleInputBlur = (e) => {
+  const handleInputBlur = () => {
     const target = inputRef.current
-    console.log('name', target.name, 'value', target.value)
-    if (isFunction(onBlur)) onBlur(e)
+    console.log('input name: ', target.name, 'input value: ', target.value)
+    if (isFunction(onBlur)) onBlur({ event: e, inputValue })
   }
 
   const continousInput = (type) => {
     if (intervalRef.current) return
     if (disabled) return
 
-    intervalRef.current = setInterval(() => {
+    const callback = () =>
       setInputValue((prev) => {
         let res = 0
         switch (type) {
@@ -68,7 +66,8 @@ const CustomInputNumber = ({
             throw new Error('no continousInput action type')
         }
       })
-    }, 50)
+    callback()
+    intervalRef.current = setInterval(() => callback(), 200)
   }
 
   const stopInput = () => {
@@ -78,8 +77,7 @@ const CustomInputNumber = ({
   }
 
   return (
-    <div className="flex border-dashed p-2 border rounded border-gray-500">
-      {/* 因為 Btn 只有這裡用到，就不額外拆一個 Btn Component 了 */}
+    <div className="flex">
       <button
         className={btnStyle({
           cond: disabled || inputValue === min
@@ -87,12 +85,14 @@ const CustomInputNumber = ({
         disabled={inputValue === min}
         onMouseDown={() => continousInput('minus')}
         onMouseUp={stopInput}
+        onTouchStart={() => continousInput('minus')}
+        onTouchEnd={stopInput}
         onMouseLeave={stopInput}
       >
         -
       </button>
       <input
-        name={name + id}
+        name={name}
         ref={inputRef}
         className={inputStyle({ cond: disabled || min === max })}
         type="number"
@@ -108,6 +108,8 @@ const CustomInputNumber = ({
         disabled={inputValue === max}
         onMouseDown={() => continousInput('plus')}
         onMouseUp={stopInput}
+        onTouchStart={() => continousInput('plus')}
+        onTouchEnd={stopInput}
         onMouseLeave={stopInput}
       >
         +
@@ -116,7 +118,6 @@ const CustomInputNumber = ({
   )
 }
 
-// 也可直接寫 ts，webpack 的配置稍微修改一下就好
 CustomInputNumber.propTypes = {
   min: PropTypes.number.isRequired,
   max: PropTypes.number.isRequired,
